@@ -14,9 +14,9 @@ def _set_env(var: str):
 
 #%%
 # # Recommended
-# os.environ["LANGCHAIN_TRACING_V2"] = "true"
-# os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-# os.environ["LANGCHAIN_PROJECT"] = "Customer Support Bot Tutorial"
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_PROJECT"] = "Customer Support Multi Bot Tutorial"
 
 #%%
 from tools.car_rentals import *
