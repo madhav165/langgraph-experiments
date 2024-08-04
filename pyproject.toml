@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "langgraph_env"
+version = "0.1.0"
+description = ""
+authors = ["madhav165 <madhav165@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+langgraph = "^0.1.19"
+langsmith = "^0.1.96"
+langchain-openai = "^0.1.20"
+requests = "^2.32.3"
+python-dotenv = "^1.0.1"
+langchain-community = "^0.2.11"
+duckduckgo-search = "^6.2.6"
+black = "^24.8.0"
+flake8 = "^7.1.0"
+isort = "^5.13.2"
+pysqlite3 = "^0.5.3"
+python-docx = "^1.1.2"
+pillow = "^10.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

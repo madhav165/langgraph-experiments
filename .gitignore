@@ -1,0 +1,7 @@
+.env
+*.png
+*.docx
+*.txt
+*.lock
+*.sqlite
+*.db
