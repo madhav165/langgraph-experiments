@@ -2,7 +2,7 @@
 import shutil
 import uuid
 from data.load_db import db, backup_file
-from tests.chatbots.bot1_customer_support.part1_agent import part_1_graph
+from part1_agent import part_1_graph
 from utils.formatters import _print_event
 
 #%%

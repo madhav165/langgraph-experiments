@@ -36,6 +36,8 @@ from langgraph.graph.message import AnyMessage, add_messages
 
 class State(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
+    user_info: str
+
 
 #%%
 from langchain_openai import ChatOpenAI
@@ -50,9 +52,6 @@ class Assistant:
 
     def __call__(self, state: State, config: RunnableConfig):
         while True:
-            configuration = config.get("configurable", {})
-            passenger_id = configuration.get("passenger_id", None)
-            state = {**state, "user_info": passenger_id}
             result = self.runnable.invoke(state)
             # If the LLM happens to return an empty response, we will re-prompt it
             # for an actual response.
@@ -92,7 +91,7 @@ primary_assistant_prompt = ChatPromptTemplate.from_messages(
     ]
 ).partial(time=datetime.now())
 
-part_1_tools = [
+part_2_tools = [
     DuckDuckGoSearchRun(max_results=1),
     fetch_user_flight_information,
     search_flights,
@@ -112,31 +111,42 @@ part_1_tools = [
     update_excursion,
     cancel_excursion,
 ]
-part_1_assistant_runnable = primary_assistant_prompt | llm.bind_tools(part_1_tools)
+part_2_assistant_runnable = primary_assistant_prompt | llm.bind_tools(part_2_tools)
 
 #%%
 from langgraph.checkpoint.sqlite import SqliteSaver
-from langgraph.graph import END, StateGraph, START
+from langgraph.graph import StateGraph, START
 from langgraph.prebuilt import tools_condition
 
 builder = StateGraph(State)
 
+#%%
+def user_info(state: State):
+    return {"user_info": fetch_user_flight_information.invoke({})}
 
-# Define nodes: these do the work
-builder.add_node("assistant", Assistant(part_1_assistant_runnable))
-builder.add_node("tools", create_tool_node_with_fallback(part_1_tools))
-# Define edges: these determine how the control flow moves
-builder.add_edge(START, "assistant")
+#%%
+# NEW: The fetch_user_info node runs first, meaning our assistant can see the user's flight information without
+# having to take an action
+builder.add_node("fetch_user_info", user_info)
+builder.add_edge(START, "fetch_user_info")
+builder.add_node("assistant", Assistant(part_2_assistant_runnable))
+builder.add_node("tools", create_tool_node_with_fallback(part_2_tools))
+builder.add_edge("fetch_user_info", "assistant")
 builder.add_conditional_edges(
     "assistant",
     tools_condition,
 )
 builder.add_edge("tools", "assistant")
 
-# The checkpointer lets the graph persist its state
-# this is a complete memory for the entire graph.
+#%%
 memory = SqliteSaver.from_conn_string(":memory:")
-part_1_graph = builder.compile(checkpointer=memory)
+part_2_graph = builder.compile(
+    checkpointer=memory,
+    # NEW: The graph will always halt before executing the "tools" node.
+    # The user can approve or reject (or even alter the request) before
+    # the assistant continues
+    interrupt_before=["tools"],
+)
 
 #%%
 from PIL import Image
@@ -144,14 +154,14 @@ import io
 
 try:
     # Assuming graph.get_graph().draw_mermaid_png() returns image data in bytes
-    image_data = part_1_graph.get_graph().draw_mermaid_png()
+    image_data = part_2_graph.get_graph().draw_mermaid_png()
 
     # Convert bytes data to an image object
     image = Image.open(io.BytesIO(image_data))
 
     # Save the image to disk
-    image.save('part_1_graph.png')
-    print("Image saved to part_1_graph.png")
+    image.save('part_2_graph.png')
+    print("Image saved to part_2_graph.png")
 except Exception as e:
     # This requires some extra dependencies and is optional
     print(f"An error occurred: {e}")
