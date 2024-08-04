@@ -1,8 +1,10 @@
+#%%
 import os
-import getpass
 import sqlite3
 from typing import Annotated
 from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
+from langchain_experimental.llms.ollama_functions import OllamaFunctions
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.messages import BaseMessage, AIMessage
 from typing_extensions import TypedDict
@@ -16,31 +18,24 @@ from docx import Document
 from PIL import Image
 import io
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# def _set_env(var: str):
-#     if not os.environ.get(var):
-#         os.environ[var] = getpass.getpass(f"{var}: ")
-
-# os.environ["LANGCHAIN_TRACING_V2"] = True
-# os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-# os.environ["LANGCHAIN_PROJECT"] = "LangGraph Tutorial"
-
+#%%
 config = {"configurable": {"thread_id": "1"}}
 memory = SqliteSaver.from_conn_string("test.sqlite")
 
+#%%
 class State(TypedDict):
     messages: Annotated[list, add_messages]
 
+#%%
 graph_builder = StateGraph(State)
 
+#%%
 @tool
 def get_current_date() -> str:
     """Return the current date in YYYY-MM-DD format."""
     return str(datetime.today().date())
 
+#%%
 def open_or_create_doc(file_path):
     """
     Open a Word document if it exists; otherwise, create a new one.
@@ -58,6 +53,7 @@ def open_or_create_doc(file_path):
     
     return doc
 
+#%%
 @tool
 def write_to_docx(file_name: str, input: str) -> None:
     """Append given input to file_name"""
@@ -66,25 +62,31 @@ def write_to_docx(file_name: str, input: str) -> None:
     doc.save(file_name)
     # return str(datetime.today().date())
 
+#%%
 ddg_tool = DuckDuckGoSearchRun(max_results=2)
 tools = [get_current_date, write_to_docx, ddg_tool]
 llm = ChatOpenAI(model="gpt-3.5-turbo")
-# llm = ChatOpenAI(model="gpt-4o")
+# llm = ChatOllama(model="phi3")
 llm_with_tools = llm.bind_tools(tools)
 
+#%%
 def chatbot(state: State):
     return {"messages": [llm_with_tools.invoke(state["messages"])]}
 graph_builder.add_node("chatbot", chatbot)
 
+#%%
 tool_node = ToolNode(tools=[get_current_date, write_to_docx, ddg_tool])
 graph_builder.add_node("tools", tool_node)
 
+#%%
 graph_builder.add_conditional_edges("chatbot", tools_condition)
 graph_builder.add_edge("tools", "chatbot")
 graph_builder.add_edge(START, "chatbot")
 
+#%%
 graph = graph_builder.compile(
     checkpointer=memory,
+    interrupt_before=["tools"],
 )
 
 # try:
@@ -107,22 +109,75 @@ graph = graph_builder.compile(
 
 # exit()
 
+#%%
+user_input = "I'm learning LangGraph. Could you do some research on it for me?"
+config = {"configurable": {"thread_id": "1"}}
+
+#%%
+# The config is the **second positional argument** to stream() or invoke()!
+events = graph.stream(
+    {"messages": [("user", user_input)]}, config, stream_mode="values"
+)
+for event in events:
+    if "messages" in event:
+        event["messages"][-1].pretty_print()
+
+#%%
+snapshot = graph.get_state(config)
+print(snapshot.next)
 
 
-while True:
-    user_input = input("User: ")
-    if user_input.lower() in ["quit", "exit", "q"]:
-        print("Goodbye!")
-        break
-    for event in graph.stream({"messages": [("user", user_input)]}, config):
-        for value in event.values():
-            if isinstance(value["messages"][-1], BaseMessage):
-                print("Assistant:", value["messages"][-1].content)
-                # snapshot = graph.get_state(config)
-                # existing_message = snapshot.values["messages"][-1]
-                if isinstance(value["messages"][-1], AIMessage):
-                    print(value["messages"][-1].tool_calls)
-                    # graph.stream(None, config, stream_mode="values")
+#%%
+existing_message = snapshot.values["messages"][-1]
+print(existing_message.tool_calls)
+# existing_message.pretty_print()
 
-# snapshot = graph.get_state(config)
-# print(snapshot)
+
+#%%
+snapshot = graph.get_state(config)
+existing_message = snapshot.values["messages"][-1]
+print("Original")
+print("Message ID", existing_message.id)
+print(existing_message.tool_calls[0])
+new_tool_call = existing_message.tool_calls[0].copy()
+new_tool_call["args"]["query"] = "LangGraph human-in-the-loop workflow"
+new_message = AIMessage(
+    content=existing_message.content,
+    tool_calls=[new_tool_call],
+    # Important! The ID is how LangGraph knows to REPLACE the message in the state rather than APPEND this messages
+    id=existing_message.id,
+)
+
+print("Updated")
+print(new_message.tool_calls[0])
+print("Message ID", new_message.id)
+graph.update_state(config, {"messages": [new_message]})
+
+print("\n\nTool calls")
+graph.get_state(config).values["messages"][-1].tool_calls
+
+
+
+
+#%%
+events = graph.stream(None, config, stream_mode="values")
+for event in events:
+    if "messages" in event:
+        event["messages"][-1].pretty_print()
+
+
+# %%
+events = graph.stream(
+    {
+        "messages": (
+            "user",
+            "Remember what I'm learning about?",
+        )
+    },
+    config,
+    stream_mode="values",
+)
+for event in events:
+    if "messages" in event:
+        event["messages"][-1].pretty_print()
+# %%

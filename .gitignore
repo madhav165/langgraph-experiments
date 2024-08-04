@@ -3,5 +3,5 @@
 *.docx
 *.txt
 *.lock
-*.sqlite
+*.sqlite*
 *.db
