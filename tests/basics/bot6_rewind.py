@@ -13,6 +13,11 @@ from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 
+
+from dotenv import load_dotenv
+
+load_dotenv("../../.venv")
+
 #%%
 class State(TypedDict):
     messages: Annotated[list, add_messages]

@@ -18,6 +18,10 @@ from docx import Document
 from PIL import Image
 import io
 
+from dotenv import load_dotenv
+
+load_dotenv("../../.venv")
+
 #%%
 config = {"configurable": {"thread_id": "1"}}
 memory = SqliteSaver.from_conn_string("test.sqlite")
