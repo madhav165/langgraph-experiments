@@ -2,6 +2,10 @@
 import getpass
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv("../../../.venv")
+
 #%%
 def _set_env(var: str):
     if not os.environ.get(var):
@@ -10,9 +14,9 @@ def _set_env(var: str):
 
 #%%
 # # Recommended
-# _set_env("LANGCHAIN_API_KEY")
-# os.environ["LANGCHAIN_TRACING_V2"] = "true"
-# os.environ["LANGCHAIN_PROJECT"] = "Customer Support Bot Tutorial"
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_PROJECT"] = "Customer Support Bot Tutorial"
 
 #%%
 from tools.car_rentals import *
