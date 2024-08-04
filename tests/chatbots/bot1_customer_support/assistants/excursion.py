@@ -3,8 +3,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from pydantic import Field
 
-from tests.chatbots.bot1_customer_support.tools.excursions import *
-from tests.chatbots.bot1_customer_support.utils.assistant_utils import *
+from tools.excursions import *
+from utils.assistant_utils import *
 
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=1.0)
 
