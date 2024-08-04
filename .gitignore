@@ -5,3 +5,4 @@
 *.lock
 *.sqlite*
 *.db
+__pycache__/*
