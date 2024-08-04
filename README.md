@@ -1,4 +1,4 @@
-## Langgraph Experiments
+## LangGraph Experiments
 
 Multi agent apps with langgraph
 
