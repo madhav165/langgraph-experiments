@@ -31,7 +31,7 @@ from langchain_community.tools import DuckDuckGoSearchRun
 
 tool = DuckDuckGoSearchRun(max_results=2)
 tools = [tool]
-llm = nvidia_llm
+llm = huggingface_llm
 llm_with_tools = llm.bind_tools(tools)
 
 
