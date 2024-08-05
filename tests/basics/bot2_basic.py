@@ -20,6 +20,8 @@ from dotenv import load_dotenv
 
 load_dotenv("../../.env")
 
+from llm import *
+
 # def _set_env(var: str):
 #     if not os.environ.get(var):
 #         os.environ[var] = getpass.getpass(f"{var}: ")
@@ -29,7 +31,8 @@ load_dotenv("../../.env")
 # os.environ["LANGCHAIN_PROJECT"] = "LangGraph Tutorial"
 
 config = {"configurable": {"thread_id": "1"}}
-memory = SqliteSaver.from_conn_string("test.sqlite")
+# memory = SqliteSaver.from_conn_string("test.sqlite")
+memory = SqliteSaver.from_conn_string(":memory:")
 
 class State(TypedDict):
     messages: Annotated[list, add_messages]
@@ -68,8 +71,7 @@ def write_to_docx(file_name: str, input: str) -> None:
 
 ddg_tool = DuckDuckGoSearchRun(max_results=2)
 tools = [get_current_date, write_to_docx, ddg_tool]
-llm = ChatOpenAI(model="gpt-3.5-turbo")
-# llm = ChatOpenAI(model="gpt-4o")
+llm = nvidia_llm
 llm_with_tools = llm.bind_tools(tools)
 
 def chatbot(state: State):

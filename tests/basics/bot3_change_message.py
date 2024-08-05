@@ -22,6 +22,8 @@ from dotenv import load_dotenv
 
 load_dotenv("../../.env")
 
+from llm import *
+
 #%%
 config = {"configurable": {"thread_id": "1"}}
 memory = SqliteSaver.from_conn_string("test.sqlite")
@@ -69,8 +71,7 @@ def write_to_docx(file_name: str, input: str) -> None:
 #%%
 ddg_tool = DuckDuckGoSearchRun(max_results=2)
 tools = [get_current_date, write_to_docx, ddg_tool]
-llm = ChatOpenAI(model="gpt-3.5-turbo")
-# llm = ChatOllama(model="gemma2:27b")
+llm = nvidia_llm
 llm_with_tools = llm.bind_tools(tools)
 
 #%%

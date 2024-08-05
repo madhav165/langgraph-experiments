@@ -18,6 +18,8 @@ from dotenv import load_dotenv
 
 load_dotenv("../../.env")
 
+from llm import *
+
 #%%
 class State(TypedDict):
     messages: Annotated[list, add_messages]
@@ -36,9 +38,7 @@ class RequestAssistance(BaseModel):
 #%%
 ddg_tool = DuckDuckGoSearchRun(max_results=2)
 tools = [ddg_tool]
-llm = ChatOpenAI(model="gpt-3.5-turbo")
-# llm = ChatOllama(model="phi3")
-# We can bind the llm to a tool definition, a pydantic model, or a json schema
+llm = nvidia_llm
 llm_with_tools = llm.bind_tools(tools + [RequestAssistance])
 
 #%%

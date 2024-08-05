@@ -13,6 +13,8 @@ from langgraph.graph.message import add_messages
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 
+from llm import *
+
 memory = SqliteSaver.from_conn_string(":memory:")
 
 
@@ -25,21 +27,11 @@ class State(TypedDict):
 
 graph_builder = StateGraph(State)
 
-from langchain_openai import ChatOpenAI
-
-# Initialize the OpenAI GPT-4 language model
-openai_llm = ChatOpenAI(
-    # model="gpt-3.5-turbo",
-    model="gpt-3.5-turbo",
-)
-
-llm = openai_llm
-
 from langchain_community.tools import DuckDuckGoSearchRun
 
 tool = DuckDuckGoSearchRun(max_results=2)
 tools = [tool]
-
+llm = nvidia_llm
 llm_with_tools = llm.bind_tools(tools)
 
 
