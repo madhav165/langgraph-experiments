@@ -20,7 +20,7 @@ import io
 
 from dotenv import load_dotenv
 
-load_dotenv("../../.venv")
+load_dotenv("../../.env")
 
 #%%
 config = {"configurable": {"thread_id": "1"}}
@@ -70,7 +70,7 @@ def write_to_docx(file_name: str, input: str) -> None:
 ddg_tool = DuckDuckGoSearchRun(max_results=2)
 tools = [get_current_date, write_to_docx, ddg_tool]
 llm = ChatOpenAI(model="gpt-3.5-turbo")
-# llm = ChatOllama(model="phi3")
+# llm = ChatOllama(model="gemma2:27b")
 llm_with_tools = llm.bind_tools(tools)
 
 #%%

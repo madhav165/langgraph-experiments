@@ -20,7 +20,7 @@ import io
 
 from dotenv import load_dotenv
 
-load_dotenv("../../.venv")
+load_dotenv("../../.env")
 
 #%%
 config = {"configurable": {"thread_id": "1"}}

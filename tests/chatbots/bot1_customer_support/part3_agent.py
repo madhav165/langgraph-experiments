@@ -4,7 +4,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv("../../../.venv")
+load_dotenv("../../../.env")
 
 #%%
 def _set_env(var: str):

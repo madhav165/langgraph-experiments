@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv("../../.venv")
+load_dotenv("../../.env")
 
 
 from typing import Annotated
